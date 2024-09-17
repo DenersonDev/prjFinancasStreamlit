@@ -25,39 +25,41 @@ def get_data(acao):
     df.reset_index(inplace=True)
     return df
 
-df_valores = get_data(acao.upper())
+if acao == '':
+    st.write('nenhum valor encontrado para esta ação')
+else:
+    df_valores = get_data(acao.upper())
+    st.subheader(f'Tabela de Valores - {acao.upper()}')
+    st.write(df_valores.tail(10))
 
-st.subheader(f'Tabela de Valores - {acao.upper()}')
-st.write(df_valores.tail(10))
+    #Criar Gráfico de Previsão
+    st.subheader(f'Gráficos de preços - {acao.upper()}')
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=df_valores['Date'],
+                            y=df_valores['Close'],
+                            name='Precos de Fechamento',
+                            line_color='yellow'))
+    fig.add_trace(go.Scatter(x=df_valores['Date'],
+                            y=df_valores['Open'],
+                            name='Precos de Abertura',
+                            line_color='blue'))
+    st.plotly_chart(fig)
 
-#Criar Gráfico de Previsão
-st.subheader(f'Gráficos de preços - {acao.upper()}')
-fig = go.Figure()
-fig.add_trace(go.Scatter(x=df_valores['Date'],
-                         y=df_valores['Close'],
-                         name='Precos de Fechamento',
-                         line_color='yellow'))
-fig.add_trace(go.Scatter(x=df_valores['Date'],
-                         y=df_valores['Open'],
-                         name='Precos de Abertura',
-                         line_color='blue'))
-st.plotly_chart(fig)
+    # previsão
 
-# previsão
+    df_treino = df_valores[['Date', 'Close']]
+    df_treino = df_treino.rename(columns={'Date': 'ds', 'Close': 'y'})
 
-df_treino = df_valores[['Date', 'Close']]
-df_treino = df_treino.rename(columns={'Date': 'ds', 'Close': 'y'})
+    modelo = Prophet()
+    modelo.fit(df_treino)
+    future = modelo.make_future_dataframe(periods=n_dias, freq='B')
+    previsao = modelo.predict(future)
 
-modelo = Prophet()
-modelo.fit(df_treino)
-future = modelo.make_future_dataframe(periods=n_dias, freq='B')
-previsao = modelo.predict(future)
+    st.subheader(f'Previsão de {n_dias} dias - {acao.upper()}')
+    st.write(previsao[['ds', 'yhat', 'yhat_lower', 'yhat_upper']].tail(n_dias))
 
-st.subheader(f'Previsão de {n_dias} dias - {acao.upper()}')
-st.write(previsao[['ds', 'yhat', 'yhat_lower', 'yhat_upper']].tail(n_dias))
+    grafico1 = plot_plotly(modelo, previsao)
+    st.plotly_chart(grafico1)
 
-grafico1 = plot_plotly(modelo, previsao)
-st.plotly_chart(grafico1)
-
-grafico2 = plot_components_plotly(modelo, previsao)
-st.plotly_chart(grafico2)
+    grafico2 = plot_components_plotly(modelo, previsao)
+    st.plotly_chart(grafico2)
