@@ -38,8 +38,8 @@ Streamlit é uma biblioteca que facilita a criação de aplicativos web interati
 
 1. Clone o repositório:
     ```bash
-    git clone https://github.com/seu-usuario/stock-forecast-app.git
-    cd stock-forecast-app
+    git clone https://github.com/DenersonDev/prjFinancasStreamlit.git
+    cd prjFinancasStreamlit
     ```
 
 2. Instale as dependências usando o Poetry:
